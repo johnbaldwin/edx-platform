@@ -73,6 +73,7 @@ cover_html/
 reports/
 jscover.log
 jscover.log.*
+scripts/xdist/pytest_container*.txt
 .pytest_cache/
 .tddium*
 common/test/data/test_unicode/static/
