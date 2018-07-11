@@ -77,20 +77,10 @@ class CourseValidationViewTest(SharedModuleStoreTestCase, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         expected_data = {
             'assignments': {
-                'all': {
-                    'num_with_dates_before_end': 0,
-                    'num_with_dates': 0,
-                    'total_visible': 1,
-                    'num_with_dates_after_start': 0,
-                    'total_number': 1,
-                },
-                'graded': {
-                    'total_number': 0,
-                    'total_visible': 0,
-                    'assignments_without_dates': [],
-                    'assignments_with_dates_before_start': [],
-                    'assignments_with_dates_after_end': [],
-                },
+                'total_number': 1,
+                'total_visible': 1,
+                'assignments_with_dates_before_start': [],
+                'assignments_with_dates_after_end': [],
             },
             'dates': {
                 'has_start_date': True,

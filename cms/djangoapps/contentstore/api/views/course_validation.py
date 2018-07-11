@@ -33,6 +33,7 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
         * grades
         * certificates
         * updates
+        * graded_only (boolean) - whether to included graded subsections only in the assignments information.
 
     **GET Response Values**
 
@@ -43,19 +44,10 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
             * has_start_date - whether the start date is set on the course.
             * has_end_date - whether the end date is set on the course.
         * assignments
-            * all
-                * total_number - total number of assignments in the course.
-                * total_visible - number of assignments visible to learners in the course.
-                * num_with_dates - number of assignments with due dates.
-                * num_with_dates_after_start - number of assignments with due dates after the start date.
-                * num_with_dates_before_end - number of assignments with due dates before the end date.
-            * graded
-                * total_number - total number of graded assignments in the course.
-                * total_visible - number of graded assignments visible to learners in the course.
-                * assignments_without_dates - number of graded assignments without due dates.
-                * assignments_with_dates_before_start
-                    - number of graded assignments with due dates before the start date.
-                * assignments_with_dates_after_end - number of graded assignments with due dates after the end date.
+            * total_number - total number of assignments in the course.
+            * total_visible - number of assignments visible to learners in the course.
+            * assignments_with_dates_before_start - assignments with due dates before the start date.
+            * assignments_with_dates_after_end - assignments with due dates after the end date.    
         * grades
             * sum_of_weights - sum of weights for all assignments in the course (valid ones should equal 1).
         * certificates
@@ -85,7 +77,7 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
                 )
             if get_bool_param(request, 'assignments', all_requested):
                 response.update(
-                    assignments=self._assignments_validation(course)
+                    assignments=self._assignments_validation(course, request)
                 )
             if get_bool_param(request, 'grades', all_requested):
                 response.update(
@@ -114,54 +106,54 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
             has_end_date=course.end is not None,
         )
 
-    def _assignments_validation(self, course):
+    def _assignments_validation(self, course, request):
         assignments, visible_assignments = self._get_assignments(course)
-        assignments_with_dates = [a for a in visible_assignments if a.due]
-
-        graded_assignments = self._get_graded_assignments(assignments)
-        graded_visibile_assignments = self._get_graded_assignments(visible_assignments)
-
-        graded_assignments_with_dates = [a for a in graded_visibile_assignments if a.due]
-        graded_assignments_without_dates = [
-            {'id': unicode(a.location), 'display_name': a.display_name}
-            for a in graded_visibile_assignments if not a.due
-        ]
-        graded_assignments_with_dates_before_start = [
-            {'id': unicode(a.location), 'display_name': a.display_name}
-            for a in graded_assignments_with_dates if a.due < course.start
-        ]
-        graded_assignments_with_dates_after_end = [
-            {'id': unicode(a.location), 'display_name': a.display_name}
-            for a in graded_assignments_with_dates if a.due > course.end
+        assignments_with_dates = [
+            a for a in visible_assignments if a.due
         ]
 
-        num_with_dates = len(assignments_with_dates)
-        num_with_dates_after_start = (
-            len([a for a in assignments_with_dates if a.due > course.start])
+        assignments_with_dates_before_start = (
+            [
+                {'id': unicode(a.location), 'display_name': a.display_name}
+                for a in assignments_with_dates 
+                if a.due < course.start
+            ]
             if self._has_start_date(course)
-            else 0
+            else []
         )
-        num_with_dates_before_end = (
-            len([a for a in assignments_with_dates if a.due < course.end])
+
+        assignments_with_dates_after_end = (
+            [
+                {'id': unicode(a.location), 'display_name': a.display_name}
+                for a in assignments_with_dates 
+                if a.due > course.end
+            ]
             if course.end
-            else 0
+            else []
         )
+
+        if get_bool_param(request, 'graded_only', False):
+            assignments_with_dates = [
+                a
+                for a in visible_assignments 
+                if a.due and a.graded
+            ]
+
+            assignments_with_dates_before_start = [
+                {'id': unicode(a.location), 'display_name': a.display_name}
+                for a in assignments_with_dates if a.due < course.start
+            ]
+
+            assignments_with_dates_after_end = [
+                {'id': unicode(a.location), 'display_name': a.display_name}
+                for a in assignments_with_dates if a.due > course.end
+            ]
 
         return dict(
-            all=dict(
-                total_number=len(assignments),
-                total_visible=len(visible_assignments),
-                num_with_dates=num_with_dates,
-                num_with_dates_after_start=num_with_dates_after_start,
-                num_with_dates_before_end=num_with_dates_before_end,
-            ),
-            graded=dict(
-                total_number=len(graded_assignments),
-                total_visible=len(graded_visibile_assignments),
-                assignments_without_dates=graded_assignments_without_dates,
-                assignments_with_dates_before_start=graded_assignments_with_dates_before_start,
-                assignments_with_dates_after_end=graded_assignments_with_dates_after_end,
-            ),
+            total_number=len(assignments),
+            total_visible=len(visible_assignments),
+            assignments_with_dates_before_start=assignments_with_dates_before_start,
+            assignments_with_dates_after_end=assignments_with_dates_after_end,
         )
 
     def _grades_validation(self, course):

@@ -18,6 +18,7 @@ define([
                 'click .button-toggle-expand-collapse': 'toggleExpandCollapse'
             },
 
+            // 5,000 milliseconds
             findElementCounter: 5000,
 
             options: {
@@ -97,7 +98,10 @@ define([
             },
 
             scrollToElement: function () {
-                this.findElementCounter -= 100;
+                // 100 milliseconds
+                const timeout = 100;
+ 
+                this.findElementCounter -= timeout;
                 const id = window.location.hash.replace("#", "");
 
                 if (this.findElementCounter > 0) {
@@ -106,7 +110,7 @@ define([
                         if (element) {
                             element.scrollIntoView();
                         } else {
-                            setTimeout(this.afterRender, 100);
+                            setTimeout(this.afterRender, timeout);
                         }
                     }
                 }
