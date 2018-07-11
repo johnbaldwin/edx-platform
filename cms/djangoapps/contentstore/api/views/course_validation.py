@@ -199,8 +199,5 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
         ]
         return assignments, visible_assignments
 
-    def _get_graded_assignments(self, assignments):
-        return [assignment for assignment in assignments if assignment.graded]
-
     def _has_start_date(self, course):
         return not course.start_date_is_still_default
