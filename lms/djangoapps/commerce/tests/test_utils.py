@@ -293,8 +293,8 @@ class RefundUtilMethodTests(ModuleStoreTestCase):
 
     @ddt.data(
         (["verified", "audit"], "audit"),
-        ("professional", "professional"),
-        ("credit", "credit"),
+        (["professional"], "professional"),
+        (["credit"], "credit"),
     )
     @ddt.unpack
     @httpretty.activate

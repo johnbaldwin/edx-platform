@@ -640,9 +640,9 @@ class CourseMode(models.Model):
             modes_dict = cls.modes_for_course_dict(course_id)
 
         if cls.HONOR in modes_dict:
-            return cls.AUDIT
-        elif cls.AUDIT in modes_dict:
             return cls.HONOR
+        elif cls.AUDIT in modes_dict:
+            return cls.AUDIT
 
     @classmethod
     def is_white_label(cls, course_id, modes_dict=None):
