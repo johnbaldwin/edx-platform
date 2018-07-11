@@ -1,6 +1,5 @@
 """Tests of commerce utilities."""
 import json
-import unittest
 from urllib import urlencode
 
 import ddt
@@ -18,6 +17,7 @@ from course_modes.models import CourseMode
 from course_modes.tests.factories import CourseModeFactory
 from lms.djangoapps.commerce.models import CommerceConfiguration
 from lms.djangoapps.commerce.utils import EcommerceService, refund_entitlement, refund_seat
+from openedx.core.djangolib.testing.utils import skip_unless_lms
 from openedx.core.lib.log_utils import audit_log
 from student.models import CourseEnrollment
 from student.tests.factories import (TEST_PASSWORD, UserFactory)
@@ -148,7 +148,8 @@ class EcommerceServiceTests(TestCase):
         self.assertEqual(url, expected_url)
 
 
-@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+@ddt.ddt
+@skip_unless_lms
 class RefundUtilMethodTests(ModuleStoreTestCase):
     shard = 4
 
@@ -291,13 +292,13 @@ class RefundUtilMethodTests(ModuleStoreTestCase):
         assert call_args[0] == (course_entitlement.user, [1])
         assert not refund_success
 
+    @httpretty.activate
     @ddt.data(
         (["verified", "audit"], "audit"),
         (["professional"], "professional"),
         (["credit"], "credit"),
     )
     @ddt.unpack
-    @httpretty.activate
     def test_mode_change_after_refund_seat(self, course_modes, new_mode):
         """
         Test if a course seat is refunded student is enrolled into default course mode
