@@ -47,7 +47,7 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
             * total_number - total number of assignments in the course.
             * total_visible - number of assignments visible to learners in the course.
             * assignments_with_dates_before_start - assignments with due dates before the start date.
-            * assignments_with_dates_after_end - assignments with due dates after the end date.    
+            * assignments_with_dates_after_end - assignments with due dates after the end date.
         * grades
             * sum_of_weights - sum of weights for all assignments in the course (valid ones should equal 1).
         * certificates
@@ -115,7 +115,7 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
         assignments_with_dates_before_start = (
             [
                 {'id': unicode(a.location), 'display_name': a.display_name}
-                for a in assignments_with_dates 
+                for a in assignments_with_dates
                 if a.due < course.start
             ]
             if self._has_start_date(course)
@@ -125,7 +125,7 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
         assignments_with_dates_after_end = (
             [
                 {'id': unicode(a.location), 'display_name': a.display_name}
-                for a in assignments_with_dates 
+                for a in assignments_with_dates
                 if a.due > course.end
             ]
             if course.end
@@ -135,7 +135,7 @@ class CourseValidationView(DeveloperErrorViewMixin, GenericAPIView):
         if get_bool_param(request, 'graded_only', False):
             assignments_with_dates = [
                 a
-                for a in visible_assignments 
+                for a in visible_assignments
                 if a.due and a.graded
             ]
 
